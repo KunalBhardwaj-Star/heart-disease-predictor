@@ -154,6 +154,7 @@ income = st.selectbox("Income Level", [1,2,3,4,5,6,7,8])
 # -----------------------------
 st.markdown("---")
 
+
 if st.button("Predict"):
 
     input_data = np.array([[HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,
@@ -162,9 +163,10 @@ if st.button("Predict"):
                             genhlth, menthlth, physhlth, DiffWalk,
                             Sex, age, education, income]])
 
-    prediction = model.predict(input_data)[0]
-
-    prob = model.predict_proba(input_data)[0][1] if hasattr(model, "predict_proba") else None
+    prob = model.predict_proba(input_data)[0][1]
+    prediction = 1 if prob > 0.7 else 0
+    st.write("Prediction:", prediction)
+    st.write("Probability:", prob)
 
     # -----------------------------
     # 🩺 Result Card

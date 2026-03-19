@@ -26,21 +26,67 @@ def create_pdf(result_text):
     doc.build(content)
 
 # -----------------------------
-# UI Setup
+# Page Config
 # -----------------------------
 st.set_page_config(page_title="Heart Disease Predictor", layout="centered")
 
-st.title("❤️ Heart Disease Prediction System")
-st.markdown("### Enter real patient details below")
+# -----------------------------
+# 🎨 Custom Styling
+# -----------------------------
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(to right, #eef2f3, #ffffff);
+}
+
+.card {
+    padding: 20px;
+    border-radius: 15px;
+    background-color: white;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.stButton>button {
+    width: 100%;
+    background: linear-gradient(90deg, #ff4b4b, #ff6b6b);
+    color: white;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    padding: 10px;
+}
+
+h1, h2, h3 {
+    color: #2c3e50;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# Header
+# -----------------------------
+st.markdown("""
+<h1 style='text-align: center; color: #ff4b4b;'>
+❤️ Heart Disease Prediction Dashboard
+</h1>
+""", unsafe_allow_html=True)
+
+st.caption("⚠️ This is not a medical diagnosis. Consult a doctor.")
 
 # -----------------------------
 # 🩺 Vital Signs
 # -----------------------------
 st.subheader("🩺 Vital Signs")
 
-bp = st.number_input("Systolic Blood Pressure (mmHg)", 80, 200, 120)
-chol = st.number_input("Cholesterol Level (mg/dL)", 100, 400, 200)
-BMI = st.number_input("BMI", 10.0, 50.0, 25.0)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    bp = st.number_input("Blood Pressure", 80, 200, 120)
+with col2:
+    chol = st.number_input("Cholesterol", 100, 400, 200)
+with col3:
+    BMI = st.number_input("BMI", 10.0, 50.0, 25.0)
 
 HighBP = 1 if bp >= 130 else 0
 HighChol = 1 if chol >= 240 else 0
@@ -51,19 +97,21 @@ CholCheck = 1
 # -----------------------------
 st.subheader("🧬 Lifestyle")
 
-smoker = st.radio("Do you smoke?", ["No", "Yes"])
+col1, col2 = st.columns(2)
+
+with col1:
+    smoker = st.radio("Smoking", ["No", "Yes"])
+    fruits = st.radio("Fruits Intake", ["No", "Yes"])
+    alcohol = st.radio("Alcohol", ["No", "Yes"])
+
+with col2:
+    activity = st.radio("Exercise", ["Yes", "No"])
+    veggies = st.radio("Vegetables", ["Yes", "No"])
+
 Smoker = 1 if smoker == "Yes" else 0
-
-activity = st.radio("Do you exercise regularly?", ["Yes", "No"])
 PhysActivity = 1 if activity == "Yes" else 0
-
-fruits = st.radio("Do you eat fruits daily?", ["Yes", "No"])
 Fruits = 1 if fruits == "Yes" else 0
-
-veggies = st.radio("Do you eat vegetables daily?", ["Yes", "No"])
 Veggies = 1 if veggies == "Yes" else 0
-
-alcohol = st.radio("Heavy alcohol consumption?", ["No", "Yes"])
 HvyAlcoholConsump = 1 if alcohol == "Yes" else 0
 
 # -----------------------------
@@ -71,23 +119,22 @@ HvyAlcoholConsump = 1 if alcohol == "Yes" else 0
 # -----------------------------
 st.subheader("📊 Health History")
 
-stroke = st.radio("History of Stroke?", ["No", "Yes"])
+stroke = st.radio("Stroke History", ["No", "Yes"])
 Stroke = 1 if stroke == "Yes" else 0
 
 diabetes = st.selectbox("Diabetes Level", [0, 1, 2])
 
-healthcare = st.radio("Access to Healthcare?", ["Yes", "No"])
+healthcare = st.radio("Healthcare Access", ["Yes", "No"])
 AnyHealthcare = 1 if healthcare == "Yes" else 0
 
-nodoc = st.radio("Avoid doctor due to cost?", ["No", "Yes"])
+nodoc = st.radio("Avoid Doctor (Cost)", ["No", "Yes"])
 NoDocbcCost = 1 if nodoc == "Yes" else 0
 
-genhlth = st.slider("General Health (1 = Excellent, 5 = Poor)", 1, 5, 3)
+genhlth = st.slider("General Health", 1, 5, 3)
+menthlth = st.slider("Mental Health Days", 0, 30, 5)
+physhlth = st.slider("Physical Health Days", 0, 30, 5)
 
-menthlth = st.slider("Mental Health (days in last month)", 0, 30, 5)
-physhlth = st.slider("Physical Health (days in last month)", 0, 30, 5)
-
-diffwalk = st.radio("Difficulty Walking?", ["No", "Yes"])
+diffwalk = st.radio("Difficulty Walking", ["No", "Yes"])
 DiffWalk = 1 if diffwalk == "Yes" else 0
 
 # -----------------------------
@@ -98,9 +145,9 @@ st.subheader("👤 Personal Info")
 sex = st.radio("Sex", ["Female", "Male"])
 Sex = 1 if sex == "Male" else 0
 
-age = st.slider("Age Category (1-13)", 1, 13, 5)
-education = st.selectbox("Education Level (1-6)", [1,2,3,4,5,6])
-income = st.selectbox("Income Level (1-8)", [1,2,3,4,5,6,7,8])
+age = st.slider("Age Category", 1, 13, 5)
+education = st.selectbox("Education Level", [1,2,3,4,5,6])
+income = st.selectbox("Income Level", [1,2,3,4,5,6,7,8])
 
 # -----------------------------
 # 🔮 Prediction
@@ -117,22 +164,32 @@ if st.button("Predict"):
 
     prediction = model.predict(input_data)[0]
 
-    if hasattr(model, "predict_proba"):
-        prob = model.predict_proba(input_data)[0][1]
-    else:
-        prob = None
-
-    st.subheader("🩺 Result")
-
-    if prediction == 1:
-        st.error("⚠️ High Risk of Heart Disease")
-        result_text = "High Risk of Heart Disease"
-    else:
-        st.success("✅ Low Risk of Heart Disease")
-        result_text = "Low Risk of Heart Disease"
+    prob = model.predict_proba(input_data)[0][1] if hasattr(model, "predict_proba") else None
 
     # -----------------------------
-    # 📊 Risk Graph
+    # 🩺 Result Card
+    # -----------------------------
+    st.markdown("## 🩺 Prediction Result")
+
+    if prediction == 1:
+        result_text = "High Risk of Heart Disease"
+        st.markdown("""
+        <div class="card">
+            <h2 style='color:red;'>⚠️ High Risk</h2>
+            <p>Patient shows higher probability of heart disease.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        result_text = "Low Risk of Heart Disease"
+        st.markdown("""
+        <div class="card">
+            <h2 style='color:green;'>✅ Low Risk</h2>
+            <p>Patient shows lower probability of heart disease.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # -----------------------------
+    # 📊 Graph
     # -----------------------------
     if prob is not None:
         st.subheader("📊 Risk Visualization")
@@ -142,25 +199,27 @@ if st.button("Predict"):
         values = [1 - prob, prob]
 
         ax.bar(labels, values)
-        ax.set_ylabel("Probability")
+        ax.set_title("Heart Disease Risk Probability")
 
         st.pyplot(fig)
 
     # -----------------------------
-    # 🧠 SHAP (FIXED)
+    # 🧠 SHAP (Top Features Only)
     # -----------------------------
-    st.subheader("🧠 Model Explanation")
+    st.subheader("🧠 Key Risk Factors")
 
     try:
         explainer = shap.LinearExplainer(model, input_data)
         shap_values = explainer.shap_values(input_data)
 
-        fig, ax = plt.subplots()
-        shap.summary_plot(shap_values, input_data, show=False)
-        st.pyplot(fig)
+        impact = shap_values[0]
+        top_indices = np.argsort(np.abs(impact))[-3:]
 
-    except Exception as e:
-        st.warning(f"SHAP not supported for this model: {e}")
+        for i in top_indices:
+            st.write(f"• Feature {i} impact: {impact[i]:.3f}")
+
+    except:
+        st.warning("Explanation not available")
 
     # -----------------------------
     # 📄 PDF Report
@@ -169,18 +228,3 @@ if st.button("Predict"):
 
     with open("report.pdf", "rb") as f:
         st.download_button("📄 Download Report", f, file_name="report.pdf")
-
-# -----------------------------
-# 🎨 Styling
-# -----------------------------
-st.markdown("""
-<style>
-.stButton>button {
-    width: 100%;
-    background-color: #ff4b4b;
-    color: white;
-    font-size: 18px;
-    border-radius: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
